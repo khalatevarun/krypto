@@ -31,14 +31,18 @@ class LLMClient:
 
 
         if stream:
-            await self._stream_response()
+            async for event in self._stream_response(client, kwargs):
+                yield event
+
         else:
            event = await self._non_stream_response(client, kwargs)
            yield event
         return
 
-    async def _stream_response(self):
-        pass
+    async def _stream_response(self, client: AsyncOpenAI, kwargs: dict[str, Any]) -> AsyncGenerator[StreamEvent,None]:
+        response = await client.chat.completions.create(**kwargs)
+        async for chunk in response:
+            yield chunk
 
     async def _non_stream_response(self, client: AsyncOpenAI, kwargs: dict[str, Any])  -> StreamEvent:
         response = await client.chat.completions.create(**kwargs) 
