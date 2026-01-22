@@ -27,7 +27,6 @@ class Agent:
         yield AgentEvent.agent_end(final_response)
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent, None]:
-         
         response_text = ""
 
         async for event in self.client.chat_completion(self.context_manager.get_messages(), True): # type: ignore

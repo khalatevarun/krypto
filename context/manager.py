@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 from prompts.system import get_system_prompt
-from utils.text import count_token
+from utils.text import count_tokens
 
 
 @dataclass
@@ -28,7 +28,7 @@ class ContextManager:
         item = MessageItem(
             role='user',
             content=content,
-            token_count= count_token(content,self._model_name)
+            token_count= count_tokens(content,self._model_name)
         )
 
         self._messages.append(item)
@@ -37,7 +37,7 @@ class ContextManager:
         item = MessageItem(
             role='assistant',
             content=content or "",
-            token_count= count_token(content,self._model_name)
+            token_count= count_tokens(content,self._model_name)
         )
 
         self._messages.append(item)
