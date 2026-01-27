@@ -28,12 +28,14 @@ class ToolResult:
     def error_result(
         cls,
         error:str,
-        output:str = ""
+        output:str = "",
+        **kw_args: Any
     ):
         return cls(
             success=False,
             output=output,
-            error=error
+            error=error,
+            **kw_args
         )
     
     @classmethod
@@ -48,6 +50,11 @@ class ToolResult:
             error=None,
             **kwargs
         )
+    
+    def to_model_output(self) -> str:
+        if self.success:
+            return self.output
+        return f"Error: {self.error}\n\nOutput:\n{self.output}"
 
 @dataclass
 class ToolConfirmation:
@@ -104,7 +111,7 @@ class Tool(abc.ABC):
             ToolKind.MEMORY,
             }
     
-    async def get_confirmation(self, invocation: ToolInvocation) -> ToolInvocation | None:
+    async def get_confirmation(self, invocation: ToolInvocation) -> ToolConfirmation | None:
         if not self._is_mutating(invocation.params):
             return None
         
@@ -115,7 +122,7 @@ class Tool(abc.ABC):
         )
     
 
-     def to_openai_schema(self) -> dict[str, Any]:
+    def to_openai_schema(self) -> dict[str, Any]:
         schema = self.schema
         if isinstance(schema, type) and issubclass(schema, BaseModel):
             json_schema = model_json_schema(schema,mode="serialization")
@@ -136,7 +143,7 @@ class Tool(abc.ABC):
             if 'parameters' in schema:
                 result['parameters'] = schema['parameters']
             else:
-                result['parameters'] = schema
+                result['parameters'] = schema # type: ignore
 
             return result
         
