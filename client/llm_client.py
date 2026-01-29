@@ -1,10 +1,15 @@
 import asyncio
+import os
 import time
 import logging
 from typing import Any, AsyncGenerator
 from openai import APIConnectionError, APIError, AsyncOpenAI, RateLimitError
+from dotenv import load_dotenv
 
 from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage, ToolCall, ToolCallDelta, parse_tool_call_arguments
+
+# Load environment variables from .env file
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +21,8 @@ class LLMClient:
     def get_client(self) -> AsyncOpenAI:
         if self._client is None:
             self._client = AsyncOpenAI(
-                api_key='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',
-                base_url='https://openrouter.ai/api/v1'
+                api_key=os.getenv('OPENROUTER_API_KEY'),
+                base_url=os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
             )
         return self._client
 
