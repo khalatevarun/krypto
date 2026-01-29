@@ -17,3 +17,18 @@ def is_binary_file(path:str|Path) -> bool:
         
     except(OSError, IOError):
         return False
+    
+def display_path_relative_to_cwd(path: str, cwd: Path | None) -> str:
+    try:
+        p = Path(path)
+
+    except Exception:
+        return path
+    
+    if cwd: 
+        try:
+            return str(p.relative_to(cwd))
+        except ValueError   :
+            pass
+    
+    return str(p)

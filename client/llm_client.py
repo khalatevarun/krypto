@@ -1,8 +1,12 @@
 import asyncio
+import time
+import logging
 from typing import Any, AsyncGenerator
 from openai import APIConnectionError, APIError, AsyncOpenAI, RateLimitError
 
 from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage, ToolCall, ToolCallDelta, parse_tool_call_arguments
+
+logger = logging.getLogger(__name__)
 
 class LLMClient:
     def __init__(self) -> None:
@@ -39,7 +43,7 @@ class LLMClient:
         client = self.get_client()
 
         kwargs = {
-            "model": "mistralai/devstral-2512:free",
+            "model": "z-ai/glm-4.5-air:free",
             "messages": messages,
             "stream": stream
         }
@@ -50,6 +54,7 @@ class LLMClient:
         
         for attempt in range(self._max_retries + 1):
             try:
+                logger.debug(f"[LLM] attempt={attempt} stream={stream} tools={bool(tools)} time={time.time():.0f}")
                 
                 if stream:
                     async for event in self._stream_response(client, kwargs):
@@ -60,13 +65,25 @@ class LLMClient:
                     yield event
                 return
             except RateLimitError as e:
+                # Try to extract reset time from headers
+                wait_time = 2 ** attempt  # default exponential backoff
+                resp = getattr(e, 'response', None)
+                if resp and hasattr(resp, 'headers'):
+                    reset_header = resp.headers.get('X-RateLimit-Reset')
+                    if reset_header:
+                        try:
+                            reset_epoch = int(reset_header) / 1000  # ms to seconds
+                            wait_time = max(1, reset_epoch - time.time())
+                        except (ValueError, TypeError):
+                            pass
+                
+                logger.warning(f"[LLM] Rate limit hit, attempt {attempt}, waiting {wait_time:.1f}s")
                 if attempt < self._max_retries:
-                    wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
                     yield StreamEvent(
                         type=StreamEventType.ERROR,
-                        error=f'Rate limite exceeded: {e}'
+                        error=f'Rate limit exceeded: {e}'
                     )
                     return
             except APIConnectionError as e:

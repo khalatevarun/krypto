@@ -11,7 +11,7 @@ class Agent:
     def __init__(self) -> None:
         self.client = LLMClient()
         self.context_manager = ContextManager()
-        self.tool_regsitry = create_default_regsitry()
+        self.tool_registry = create_default_regsitry()
 
     async def run(self, message:str):
         yield AgentEvent.agent_start(message)
@@ -31,7 +31,7 @@ class Agent:
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent, None]:
         response_text = ""
-        tools_schemas = self.tool_regsitry.get_schemas()
+        tools_schemas = self.tool_registry.get_schemas()
         tool_calls: list[ToolCall] = []
         
 
@@ -64,7 +64,7 @@ class Agent:
                 arguments=tool_call.arguments
             )
 
-            result = await self.tool_regsitry.invoke(
+            result = await self.tool_registry.invoke(
                 tool_call.name or "",
                 tool_call.arguments,
                 Path.cwd()
