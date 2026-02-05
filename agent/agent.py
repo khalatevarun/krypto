@@ -4,13 +4,15 @@ from typing import AsyncGenerator
 from agent.events import AgentEvent, AgentEventType
 from client.llm_client import LLMClient
 from client.response import StreamEventType, ToolCall, ToolResultMessage
+from config.config import Config
 from context.manager import ContextManager
 from tools.registry import create_default_regsitry
 
 class Agent:
-    def __init__(self) -> None:
-        self.client = LLMClient()
-        self.context_manager = ContextManager()
+    def __init__(self, config: Config) -> None:
+        self.client = LLMClient(config)
+        self.config = config
+        self.context_manager = ContextManager(self.config)
         self.tool_registry = create_default_regsitry()
 
     async def run(self, message:str):
@@ -75,7 +77,7 @@ class Agent:
             result = await self.tool_registry.invoke(
                 tool_call.name or "",
                 tool_call.arguments,
-                Path.cwd()
+                self.config.cwd
             )
 
             yield AgentEvent.tool_call_complete(

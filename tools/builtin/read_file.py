@@ -100,15 +100,14 @@ class ReadFileTool(Tool):
                 formatted_lines.append(f"{i:6}|{line}")
 
             output = "\n".join(formatted_lines)
-            token_count = count_tokens(output,'z-ai/glm-4.5-air:free:free')
+            token_count = count_tokens(output)
 
             truncated = False
             if token_count > self.MAX_OUTPUT_TOKENS:
                 output = truncate_text(
                     output,
                     max_tokens=self.MAX_OUTPUT_TOKENS,
-                    suffix=f"\n... [truncated {total_lines} total lines]",
-                    model='z-ai/glm-4.5-air:free:free'
+                    suffix=f"\n... [truncated {total_lines} total lines]"
                 )
                 truncated = True
 

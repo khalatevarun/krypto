@@ -8,7 +8,7 @@ def get_tokenizer(model:str):
         return encoding.encode
     
 
-def count_tokens(text:str, model:str) -> int:
+def count_tokens(text:str, model:str = 'gpt-4') -> int:
     tokenizer = get_tokenizer(model)
     if tokenizer:
         return len(tokenizer(text))
@@ -21,28 +21,27 @@ def estimate_tokens(text:str) -> int:
 
 def truncate_text(
     text: str,
-    model: str,
     max_tokens: int,
     suffix: str = "\n... [truncated]",
     preserve_lines: bool = True,
 ):
-    current_tokens = count_tokens(text, model)
+    current_tokens = count_tokens(text)
     if current_tokens <= max_tokens:
         return text
 
-    suffix_tokens = count_tokens(suffix, model)
+    suffix_tokens = count_tokens(suffix)
     target_tokens = max_tokens - suffix_tokens
 
     if target_tokens <= 0:
         return suffix.strip()
 
     if preserve_lines:
-        return _truncate_by_lines(text, target_tokens, suffix, model)
+        return _truncate_by_lines(text, target_tokens, suffix)
     else:
-        return _truncate_by_chars(text, target_tokens, suffix, model)
+        return _truncate_by_chars(text, target_tokens, suffix)
 
 
-def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str) -> str:
+def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str = 'gpt-4') -> str:
     lines = text.split("\n")
     result_lines: list[str] = []
     current_tokens = 0
@@ -61,7 +60,7 @@ def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str) -
     return "\n".join(result_lines) + suffix
 
 
-def _truncate_by_chars(text: str, target_tokens: int, suffix: str, model: str) -> str:
+def _truncate_by_chars(text: str, target_tokens: int, suffix: str, model: str = 'gpt-4') -> str:
     # Binary search for the right length
     low, high = 0, len(text)
 

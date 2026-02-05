@@ -11,6 +11,7 @@ from rich.syntax import Syntax
 from rich.console import Group
 import re 
 
+from config.config import Config
 from utils.paths import display_path_relative_to_cwd
 from utils.text import truncate_text
 
@@ -52,11 +53,12 @@ def get_console() -> Console:
 
 
 class TUI:
-    def __init__(self, console: Console | None = None) -> None:
+    def __init__(self, config: Config, console: Console | None = None, ) -> None:
         self.console = console or get_console()
         self._assistant_stream_open = False
         self._tool_args_by_call_id: dict[str, dict[str, Any]] = {}
-        self.cwd = Path.cwd()
+        self.config = config
+        self.cwd = self.config.cwd
 
     def begin_assistant(self) -> None:
         self.console.print()
@@ -251,7 +253,7 @@ class TUI:
                 word_wrap=False
             ))
         else:
-            output_display = truncate_text(output, "", 240, )
+            output_display = truncate_text(output, 240, )
             blocks.append(Syntax(
                 output_display,'text',theme="monokai",word_wrap=False
             ))
