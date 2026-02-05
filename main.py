@@ -46,12 +46,10 @@ class CLI:
 
         
     def _get_tool_kind(self, tool_name: str) -> str | None:
-        tool_kind = None
         tool = self.agent.tool_registry.get(tool_name) # type: ignore
         if not tool:
-            tool_kind = None
-        tool_kind = tool.kind.value # type: ignore
-        return tool_kind
+            return None
+        return tool.kind.value
 
     async def _process_message(self, message:str) -> str | None:
         if not self.agent:
