@@ -42,11 +42,14 @@ class CLI:
                     console.print("\n[dim]Use /exit to quit[/dim]")
                 except EOFError:
                     break
+                except Exception as e:
+                    console.print(f"\n[error]Error: {e}[/error]")
+                    break
         console.print("\n[dim]Goodbye![/dim]")
 
         
     def _get_tool_kind(self, tool_name: str) -> str | None:
-        tool = self.agent.tool_registry.get(tool_name) # type: ignore
+        tool = self.agent.session.tool_registry.get(tool_name) # type: ignore
         if not tool:
             return None
         return tool.kind.value
