@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 from typing import AsyncGenerator
 
 from agent.events import AgentEvent, AgentEventType
@@ -35,6 +36,7 @@ class Agent:
             raise RuntimeError("Session is not initialized")
 
         max_turns = self.session.config.max_turns
+        recent_tool_calls: list[tuple[str, str]] = []  # (name, args_json) for loop detection
 
         for turn in range(max_turns):
             self.session.increment_turn()
@@ -43,7 +45,7 @@ class Agent:
             tool_calls: list[ToolCall] = []
             
 
-            async for event in self.session.client.chat_completion(self.context_manager.get_messages(),tools=tools_schemas if tools_schemas else None , stream=True): # type: ignore
+            async for event in self.session.client.chat_completion(self.session.context_manager.get_messages(),tools=tools_schemas if tools_schemas else None , stream=True): # type: ignore
                 
                 if event.type == StreamEventType.TEXT_DELTA:
                     if event.text_delta:
@@ -63,7 +65,7 @@ class Agent:
                     {
                         'id':tc.call_id,
                         'type': 'function',
-                        'function': {'name': tc.name, 'arguments': str(tc.arguments)}
+                        'function': {'name': tc.name, 'arguments': json.dumps(tc.arguments)}
                     }
                     for tc in tool_calls
                 ] if tool_calls else []
@@ -73,6 +75,18 @@ class Agent:
             
             if not tool_calls:
                 return
+
+            # --- loop detection ---
+            current_signatures = [
+                (tc.name or "", json.dumps(tc.arguments, sort_keys=True))
+                for tc in tool_calls
+            ]
+            if current_signatures == recent_tool_calls:
+                yield AgentEvent.text_delta(
+                    "\n[Loop detected — the same tool calls were repeated. Stopping.]\n"
+                )
+                return
+            recent_tool_calls = current_signatures
 
             tool_call_results: list[ToolResultMessage] = []
             
@@ -107,7 +121,6 @@ class Agent:
                 self.session.context_manager.add_tool_result(
                     tool_result.tool_call_id,
                     tool_result.content
-
                 )
 
     async def __aenter__(self) -> Agent:

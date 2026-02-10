@@ -99,10 +99,9 @@ class CLI:
                     event.data.get("output",""),
                     event.data.get("error"),
                     event.data.get("metadata", False),
+                    event.data.get("diff"),
                     event.data.get("truncated", False)
                 )
-
-
 
         
         return final_response
