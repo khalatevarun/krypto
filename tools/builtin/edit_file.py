@@ -8,9 +8,8 @@ from utils.paths import ensure_parent_directory, resolve_path
 
 class EditFileParams(BaseModel):
     path: str = Field(
-        ..., description=""
+        ..., description="Path to the file to edit (relative to working directory or absolute path)"
     )
-    content: str = Field(...,description="Path to the file to edit (relative to working directory or absolute path)")
     old_string: str = Field(
         "", description='The exact to find and replace. Must match exactly including all white space and indentation. For new files, leave this empty.'
     )

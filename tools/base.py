@@ -27,8 +27,11 @@ class FileDiff:
     def to_diff(self) -> str:
         import difflib
 
-        old_lines = self.old_content.splitlines(keepends=True)
-        new_lines = self.new_content.splitlines(keepends=True)
+        old = self.old_content if self.old_content.endswith('\n') else self.old_content + '\n'
+        new = self.new_content if self.new_content.endswith('\n') else self.new_content + '\n'
+
+        old_lines = old.splitlines(keepends=True)
+        new_lines = new.splitlines(keepends=True)
 
         old_name = '/dev/null' if self.is_new_file else str(self.path)
         new_name = '/dev/null' if self.is_deletion else str(self.path)
@@ -98,7 +101,7 @@ class ToolInvocation:
 
 class Tool(abc.ABC):
     name: str = "base_tool"
-    descrption: str = "Base tool"
+    description: str = "Base tool"
     kind: ToolKind = ToolKind.READ
     # def __init__(self) -> None:
     #     super().__init__()
@@ -157,7 +160,7 @@ class Tool(abc.ABC):
         
             return {
                 'name':self.name,
-                'description': self.descrption,
+                'description': self.description,
                 'parameters': {
                     'type': 'object',
                     'properties': json_schema.get('properties',{}),
@@ -166,7 +169,7 @@ class Tool(abc.ABC):
             }
         
         if isinstance(schema, dict):
-            result = {'name': self.name, 'description': self.descrption}
+            result = {'name': self.name, 'description': self.description}
 
             if 'parameters' in schema:
                 result['parameters'] = schema['parameters']

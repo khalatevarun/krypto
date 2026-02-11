@@ -269,7 +269,12 @@ class TUI:
             blocks.append(Syntax(diff_display, 'diff', theme='monokai', word_wrap=True))
         
         else:
-            output_display = truncate_text(output, self._max_block_tokens)
+            display_text = output
+            if not success and error:
+                display_text = error
+            elif not success and not output:
+                display_text = "Unknown error"
+            output_display = truncate_text(display_text, self._max_block_tokens)
             blocks.append(Syntax(
                 output_display,'text',theme="monokai",word_wrap=False
             ))
