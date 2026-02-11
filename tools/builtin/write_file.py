@@ -13,7 +13,12 @@ class WriteFileParams(BaseModel):
 
 class WriteFileTool(Tool):
     name = "write_file"
-    description = ("")
+    description = (
+        "Write content to a file. Creates the file if it doesn't exist, "
+        "or overwrites if it does. Parent directories are created automatically. "
+        "Use this for creating new files or completely replacing file contents. "
+        "For partial modifications, use the edit tool instead."
+    )
     kind = ToolKind.WRITE
 
     @property
