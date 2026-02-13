@@ -30,6 +30,7 @@ class EditFileTool(Tool):
         "For creating new files or complete rewrites, use write_file instead."
     )
     kind = ToolKind.WRITE
+    
 
     @property
     def schema(self) -> type[EditFileParams]:

@@ -51,6 +51,7 @@ class ToolResult:
     output: str
     error: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    exit_code: int | None = None
 
     truncated:bool = False
     diff: FileDiff | None = None
@@ -106,8 +107,8 @@ class Tool(abc.ABC):
     # def __init__(self) -> None:
     #     super().__init__()
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, config) -> None:
+        self.config = config
 
     @property
     def schema(self) -> dict[str, Any] | type['BaseModel']:
