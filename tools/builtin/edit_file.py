@@ -1,5 +1,3 @@
-
-
 from pathlib import Path
 from pydantic import BaseModel, Field
 from tools.base import FileDiff, Tool, ToolInvocation, ToolKind, ToolResult
@@ -8,18 +6,21 @@ from utils.paths import ensure_parent_directory, resolve_path
 
 class EditFileParams(BaseModel):
     path: str = Field(
-        ..., description="Path to the file to edit (relative to working directory or absolute path)"
+        ...,
+        description="Path to the file to edit (relative to working directory or absolute path)",
     )
     old_string: str = Field(
-        "", description='The exact to find and replace. Must match exactly including all white space and indentation. For new files, leave this empty.'
+        "",
+        description="The exact to find and replace. Must match exactly including all white space and indentation. For new files, leave this empty.",
     )
     new_string: str = Field(
-        ..., description='The text to replace old_string with. Can be empty to delete text.'
+        ...,
+        description="The text to replace old_string with. Can be empty to delete text.",
     )
     replace_all: bool = Field(
-        False, description='Replace all occurrences of old_string (default: False)'
+        False, description="Replace all occurrences of old_string (default: False)"
     )
-    
+
 
 class EditFileTool(Tool):
     name = "edit"
@@ -30,67 +31,66 @@ class EditFileTool(Tool):
         "For creating new files or complete rewrites, use write_file instead."
     )
     kind = ToolKind.WRITE
-    
 
     @property
     def schema(self) -> type[EditFileParams]:
         return EditFileParams
-    
+
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
         params = EditFileParams(**invocation.params)
         path = resolve_path(invocation.cwd, params.path)
 
         # if for some reason llm invokes  edit_tool to write a new file
         if not path.exists():
-            #having old_string does not make sense while writing content in a new file
+            # having old_string does not make sense while writing content in a new file
             if params.old_string:
                 return ToolResult.error_result(
-                    f'File does not exist: {path}. To create a new file, use an empty old_string.'
+                    f"File does not exist: {path}. To create a new file, use an empty old_string."
                 )
-            
+
             ensure_parent_directory(path)
-            path.write_text(params.new_string, encoding='utf-8')
+            path.write_text(params.new_string, encoding="utf-8")
 
             line_count = len(params.new_string.splitlines())
-            
+
             return ToolResult.success_result(
-                f'Created {path} {line_count} lines',
-                diff = FileDiff(
+                f"Created {path} {line_count} lines",
+                diff=FileDiff(
                     path=path,
                     old_content="",
                     new_content=params.new_string,
                     is_new_file=True,
                 ),
                 metadata={
-                    'path':str(path),
-                    'is_new_file': True,
-                    'lines':line_count,
-                }
+                    "path": str(path),
+                    "is_new_file": True,
+                    "lines": line_count,
+                },
             )
 
-        old_content = path.read_text(encoding='utf-8')
+        old_content = path.read_text(encoding="utf-8")
 
         if not params.old_string:
             return ToolResult.error_result(
-                    f'old_string is empty but file exists. Provide old_string to edit or use write_file to override'
-                )
-        
+                "old_string is empty but file exists. Provide old_string to edit or use write_file to override"
+            )
+
         occurence_count = old_content.count(params.old_string)
 
         if occurence_count == 0:
             return self._no_match_error(params.old_string, old_content, path)
-        
+
         if occurence_count > 1 and not params.replace_all:
             return ToolResult.error_result(
-                f'old_string found {occurence_count} time in {path}. '
+                f"old_string found {occurence_count} time in {path}. "
                 f"Either: \n"
                 f"1. Provide more context to make the match unique or\n"
                 f"2. Set replace_all=true to replace all occurences",
                 metadata={
-                    'occurence_count': occurence_count, 
+                    "occurence_count": occurence_count,
                 },
             )
-        
+
         if params.replace_all:
             new_content = old_content.replace(params.old_string, params.new_string)
             replace_count = occurence_count
@@ -99,13 +99,15 @@ class EditFileTool(Tool):
             replace_count = 1
 
         if new_content == old_content:
-            return ToolResult.error_result("No change made - old_string equals new_string")
-        
+            return ToolResult.error_result(
+                "No change made - old_string equals new_string"
+            )
+
         try:
-            path.write_text(new_content, encoding='utf-8')
+            path.write_text(new_content, encoding="utf-8")
         except IOError as e:
             return ToolResult.error_result(f"Failed to write file: {e}")
-        
+
         old_lines = len(old_content.splitlines())
         new_lines = len(new_content.splitlines())
         line_diff = new_lines - old_lines
@@ -117,19 +119,14 @@ class EditFileTool(Tool):
             diff_msg = f" ({line_diff} lines)"
 
         return ToolResult.success_result(
-            f'Edited {path}: replaced {replace_count} occurrence(s){diff_msg}',
-            diff=FileDiff(
-                path=path,
-                old_content=old_content,
-                new_content=new_content
-            ),
+            f"Edited {path}: replaced {replace_count} occurrence(s){diff_msg}",
+            diff=FileDiff(path=path, old_content=old_content, new_content=new_content),
             metadata={
-                'path': str(path),
-                'replaced_count': replace_count,
-                'line_diff': line_diff
-            }
+                "path": str(path),
+                "replaced_count": replace_count,
+                "line_diff": line_diff,
+            },
         )
-
 
     def _no_match_error(self, old_string: str, content: str, path: Path) -> ToolResult:
         lines = content.splitlines()
@@ -162,6 +159,3 @@ class EditFileTool(Tool):
             )
 
         return ToolResult.error_result(error_msg)
-
-
-

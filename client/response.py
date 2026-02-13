@@ -11,15 +11,14 @@ class TextDelta:
     def __str__(self):
         return self.content
 
+
 class StreamEventType(str, Enum):
-    TEXT_DELTA = "text_delta" 
-    MESSAGE_COMPLETE = "message_complete" 
-    ERROR = "error" 
-    TOOL_CALL_DETAILS_START="tool_call_details_start"
-    TOOL_CALL__DETAILS_DELTA="tool_call_details_delta"
-    TOOL_CALL_DETAILS_COMPLETE="tool_call_details_complete"
-
-
+    TEXT_DELTA = "text_delta"
+    MESSAGE_COMPLETE = "message_complete"
+    ERROR = "error"
+    TOOL_CALL_DETAILS_START = "tool_call_details_start"
+    TOOL_CALL__DETAILS_DELTA = "tool_call_details_delta"
+    TOOL_CALL_DETAILS_COMPLETE = "tool_call_details_complete"
 
 
 @dataclass
@@ -36,19 +35,21 @@ class TokenUsage:
             total_tokens=self.total_tokens + other.total_tokens,
             cached_tokens=self.cached_tokens + other.cached_tokens,
         )
-    
-    
+
+
 @dataclass
 class ToolCallDelta:
-    call_id:str
+    call_id: str
     name: str | None = None
     arguments_delta: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class ToolCall:
     call_id: str
     name: str | None = None
     arguments: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class StreamEvent:
@@ -60,6 +61,7 @@ class StreamEvent:
     tool_call_delta: ToolCallDelta | None = None
     tool_call: ToolCall | None = None
 
+
 @dataclass
 class ToolResultMessage:
     tool_call_id: str
@@ -68,19 +70,19 @@ class ToolResultMessage:
 
     def to_openai_message(self) -> dict[str, Any]:
         return {
-            'role':'tool',
-            'tool_call_id': self.tool_call_id,
-            'content': self.content
+            "role": "tool",
+            "tool_call_id": self.tool_call_id,
+            "content": self.content,
         }
 
-def parse_tool_call_arguments(argument_str:str) -> dict[str,Any]:
+
+def parse_tool_call_arguments(argument_str: str) -> dict[str, Any]:
     import json
+
     if not argument_str:
         return {}
-    
-    try: 
+
+    try:
         return json.loads(argument_str)
     except json.JSONDecodeError:
-        return {'raw_arguments':argument_str}
-    
-
+        return {"raw_arguments": argument_str}

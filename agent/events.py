@@ -6,6 +6,7 @@ from typing import Any
 from client.response import TokenUsage
 from tools.base import ToolResult
 
+
 class AgentEventType(str, Enum):
     # agent lifecycle
     AGENT_START = "agent_start"
@@ -13,12 +14,12 @@ class AgentEventType(str, Enum):
     AGENT_ERROR = "agent_error"
 
     # text streaming
-    TEXT_DETLA="text_delta"
-    TEXT_COMPLETE="text_complete"
+    TEXT_DETLA = "text_delta"
+    TEXT_COMPLETE = "text_complete"
 
     # tools
-    TOOL_CALL_START="tool_call_start"
-    TOOL_CALL_COMPLETE="tool_call_complete"
+    TOOL_CALL_START = "tool_call_start"
+    TOOL_CALL_COMPLETE = "tool_call_complete"
 
 
 @dataclass
@@ -27,64 +28,64 @@ class AgentEvent:
     data: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def agent_start(cls, message:str) -> AgentEvent:
+    def agent_start(cls, message: str) -> AgentEvent:
         return cls(
             type=AgentEventType.AGENT_START,
-            data={'message':message},
+            data={"message": message},
         )
-    
+
     @classmethod
-    def agent_end(cls, response:str|None = None, usage: TokenUsage | None = None) -> AgentEvent:
+    def agent_end(
+        cls, response: str | None = None, usage: TokenUsage | None = None
+    ) -> AgentEvent:
         return cls(
             type=AgentEventType.AGENT_END,
-            data={'response':response, 'usage': usage.__dict__ if usage else None},
+            data={"response": response, "usage": usage.__dict__ if usage else None},
         )
-    
+
     @classmethod
-    def agent_error(cls, error:str, details: dict[str, Any] | None = None) -> AgentEvent:
+    def agent_error(
+        cls, error: str, details: dict[str, Any] | None = None
+    ) -> AgentEvent:
         return cls(
             type=AgentEventType.AGENT_ERROR,
-            data={'error':error, 'details': details or {}},
+            data={"error": error, "details": details or {}},
         )
-    
+
     @classmethod
-    def text_delta(cls, content:str) -> AgentEvent:
+    def text_delta(cls, content: str) -> AgentEvent:
         return cls(
             type=AgentEventType.TEXT_DETLA,
-            data={'content':content},
+            data={"content": content},
         )
-    
+
     @classmethod
-    def text_complete(cls, content:str) -> AgentEvent:
+    def text_complete(cls, content: str) -> AgentEvent:
         return cls(
             type=AgentEventType.TEXT_COMPLETE,
-            data={'content':content},
+            data={"content": content},
         )
-    
+
     @classmethod
-    def tool_call_start(cls, call_id:str, name:str, arguments: dict[str, Any]):
+    def tool_call_start(cls, call_id: str, name: str, arguments: dict[str, Any]):
         return cls(
             type=AgentEventType.TOOL_CALL_START,
-            data={
-                'call_id':call_id,
-                'name':name,
-                'arguments':arguments
-            }
+            data={"call_id": call_id, "name": name, "arguments": arguments},
         )
-    
+
     @classmethod
-    def tool_call_complete(cls, call_id:str, name:str,result: ToolResult):
+    def tool_call_complete(cls, call_id: str, name: str, result: ToolResult):
         return cls(
             type=AgentEventType.TOOL_CALL_COMPLETE,
             data={
-                'call_id':call_id,
-                'name':name,
-                'success': result.success,
-                'output': result.output,
-                'error': result.error,
-                'metadata': result.metadata,
-                'diff': result.diff.to_diff() if result.diff else None,
-                'truncated': result.truncated,
-                'exit_code': result.exit_code
-            }
+                "call_id": call_id,
+                "name": name,
+                "success": result.success,
+                "output": result.output,
+                "error": result.error,
+                "metadata": result.metadata,
+                "diff": result.diff.to_diff() if result.diff else None,
+                "truncated": result.truncated,
+                "exit_code": result.exit_code,
+            },
         )

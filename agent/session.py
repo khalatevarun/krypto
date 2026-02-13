@@ -6,7 +6,7 @@ from context.manager import ContextManager
 from tools.registry import create_default_regsitry
 
 
-class Session: 
+class Session:
     def __init__(self, config: Config) -> None:
         self.client = LLMClient(config)
         self.config = config
@@ -17,13 +17,9 @@ class Session:
         self.updated_at = datetime.now()
 
         self._turn_count = 0
-    
+
     def increment_turn(self) -> int:
         self._turn_count += 1
         self.updated_at = datetime.now()
-        
-        return self._turn_count
-    
-    
 
-        
+        return self._turn_count

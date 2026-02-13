@@ -1,10 +1,8 @@
-from datetime import datetime
-import platform
 
 from config.config import Config
 
 
-def get_system_prompt(config: Config    ) -> str:
+def get_system_prompt(config: Config) -> str:
     parts = []
 
     # Identity and role
@@ -27,7 +25,6 @@ def get_system_prompt(config: Config    ) -> str:
         parts.append(_get_user_instructions_section(config.user_instructions))
 
     parts.append(_get_operational_section())
-
 
     return "\n\n".join(parts)
 

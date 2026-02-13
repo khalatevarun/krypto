@@ -1,9 +1,7 @@
 from pathlib import Path
 import sys
-from typing import Any
 from agent.agent import Agent
 from agent.events import AgentEventType
-from client.llm_client import LLMClient
 import asyncio
 import click
 from config.config import Config
@@ -20,16 +18,19 @@ class CLI:
         self.tui = TUI(self.config, console)
 
     async def run_single(self, message: str) -> str | None:
-        async with Agent(self.config ) as agent:
+        async with Agent(self.config) as agent:
             self.agent = agent
             return await self._process_message(message)
-        
+
     async def run_interactive(self) -> str | None:
-        self.tui.print_welcome(title='Krypto', lines=[
-            f'model: {self.config.model_name}',
-            f'cwd: {self.config.cwd}',
-            'commands: /help /config /approval /model /exit'
-        ])
+        self.tui.print_welcome(
+            title="Krypto",
+            lines=[
+                f"model: {self.config.model_name}",
+                f"cwd: {self.config.cwd}",
+                "commands: /help /config /approval /model /exit",
+            ],
+        )
         async with Agent(self.config) as agent:
             self.agent = agent
             while True:
@@ -47,24 +48,23 @@ class CLI:
                     break
         console.print("\n[dim]Goodbye![/dim]")
 
-        
     def _get_tool_kind(self, tool_name: str) -> str | None:
-        tool = self.agent.session.tool_registry.get(tool_name) # type: ignore
+        tool = self.agent.session.tool_registry.get(tool_name)  # type: ignore
         if not tool:
             return None
         return tool.kind.value
 
-    async def _process_message(self, message:str) -> str | None:
+    async def _process_message(self, message: str) -> str | None:
         if not self.agent:
             return None
-        
+
         assistant_streaming = False
         final_response: str | None = None
-        
+
         async for event in self.agent.run(message):
             # print(event)
             if event.type == AgentEventType.TEXT_DETLA:
-                content = event.data.get("content","")
+                content = event.data.get("content", "")
                 if not assistant_streaming:
                     self.tui.begin_assistant()
                     assistant_streaming = True
@@ -75,53 +75,53 @@ class CLI:
                     self.tui.end_assistant()
                     assistant_streaming = False
             elif event.type == AgentEventType.AGENT_ERROR:
-                error = event.data.get("error","Unknown error")
+                error = event.data.get("error", "Unknown error")
                 console.print(f"\n[error]Error: {error}[/error]")
             elif event.type == AgentEventType.TOOL_CALL_START:
-                tool_name = event.data.get("name","unknown")
+                tool_name = event.data.get("name", "unknown")
                 tool_kind = self._get_tool_kind(tool_name)
-                
+
                 self.tui.tool_call_start(
-                    event.data.get('call_id',""),
+                    event.data.get("call_id", ""),
                     tool_name,
-                    tool_kind, 
-                    event.data.get('arguments',{}),
+                    tool_kind,
+                    event.data.get("arguments", {}),
                 )
             elif event.type == AgentEventType.TOOL_CALL_COMPLETE:
-                tool_name = event.data.get('name', 'unknown')
+                tool_name = event.data.get("name", "unknown")
                 tool_kind = self._get_tool_kind(tool_name)
 
                 self.tui.tool_call_complete(
-                    event.data.get("call_id",""),
+                    event.data.get("call_id", ""),
                     tool_name,
                     tool_kind,
-                    event.data.get("success",False),
-                    event.data.get("output",""),
+                    event.data.get("success", False),
+                    event.data.get("output", ""),
                     event.data.get("error"),
                     event.data.get("metadata", False),
                     event.data.get("diff"),
                     event.data.get("truncated", False),
-                    event.data.get("exit_code",)
+                    event.data.get(
+                        "exit_code",
+                    ),
                 )
 
-        
         return final_response
 
-    
 
 @click.command()
 @click.argument("prompt", required=False)
 @click.option(
-    '--cwd',
-    '-c',
+    "--cwd",
+    "-c",
     type=click.Path(exists=True, file_okay=False, path_type=Path),
-    help='Current working directory'
+    help="Current working directory",
 )
 def main(
     prompt: str | None,
     cwd: Path | None,
 ):
-   
+
     try:
         config = load_config(cwd=cwd)
     except Exception as e:
@@ -142,5 +142,6 @@ def main(
             sys.exit(1)
     else:
         asyncio.run(cli.run_interactive())
+
 
 main()

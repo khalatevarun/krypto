@@ -1,7 +1,7 @@
 from typing import Any
 
 
-class CustomError(Exception): #custom exception class
+class CustomError(Exception):  # custom exception class
     def __init__(
         self,
         message: str,

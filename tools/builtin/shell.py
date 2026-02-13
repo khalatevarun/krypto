@@ -27,19 +27,19 @@ BLOCKED_COMMANDS = {
     "init 6",
 }
 
+
 class ShellParams(BaseModel):
-    command:str = Field(...,description="the shell command to execute")
-    timeout: int = Field(120, ge=1, le=6, description='timeout in seconds (Default: 120)')
-    cwd: str | None = Field(None, description='working directory for the command')
-
-
+    command: str = Field(..., description="the shell command to execute")
+    timeout: int = Field(
+        120, ge=1, le=6, description="timeout in seconds (Default: 120)"
+    )
+    cwd: str | None = Field(None, description="working directory for the command")
 
 
 class ShellTool(Tool):
     name = "shell"
     kind = ToolKind.SHELL
-    description="Execute a shell command. Use this for running system command scripts and CLI tools."
-
+    description = "Execute a shell command. Use this for running system command scripts and CLI tools."
 
     @property
     def schema(self) -> type[ShellParams]:
@@ -51,8 +51,11 @@ class ShellTool(Tool):
         command = params.command.lower().strip()
         for blocked in BLOCKED_COMMANDS:
             if blocked in command:
-                return ToolResult.error_result(f"Command blocked for safety: {params.command}", metadata={'blocked': True})
-            
+                return ToolResult.error_result(
+                    f"Command blocked for safety: {params.command}",
+                    metadata={"blocked": True},
+                )
+
         if params.cwd:
             cwd = Path(params.cwd)
             if not cwd.is_absolute():
@@ -62,7 +65,7 @@ class ShellTool(Tool):
 
         if not cwd.exists():
             return ToolResult.error_result(f"working directory does not exist: {cwd}")
-        
+
         # new to figure out the shell and get the environment variable
         env = self._build_environment()
         if sys.platform == "win32":
@@ -76,7 +79,7 @@ class ShellTool(Tool):
             stderr=asyncio.subprocess.PIPE,
             cwd=cwd,
             env=env,
-            start_new_session=True, # can sync with the current session, right now we are creating new session
+            start_new_session=True,  # can sync with the current session, right now we are creating new session
         )
 
         try:
@@ -117,7 +120,6 @@ class ShellTool(Tool):
             exit_code=exit_code,
         )
 
-    
     def _build_environment(self) -> dict[str, str]:
         env = os.environ.copy()
 
@@ -136,6 +138,3 @@ class ShellTool(Tool):
             env.update(shell_environment.set_vars)
 
         return env
-
-            
-

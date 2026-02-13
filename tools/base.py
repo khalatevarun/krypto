@@ -7,6 +7,7 @@ from pydantic import BaseModel, ValidationError
 from enum import Enum
 from pydantic.json_schema import model_json_schema
 
+
 class ToolKind(str, Enum):
     READ = "read"
     WRITE = "write"
@@ -14,6 +15,7 @@ class ToolKind(str, Enum):
     NETWORK = "network"
     MEMORY = "memory"
     MCP = "mcp"
+
 
 @dataclass
 class FileDiff:
@@ -27,23 +29,29 @@ class FileDiff:
     def to_diff(self) -> str:
         import difflib
 
-        old = self.old_content if self.old_content.endswith('\n') else self.old_content + '\n'
-        new = self.new_content if self.new_content.endswith('\n') else self.new_content + '\n'
+        old = (
+            self.old_content
+            if self.old_content.endswith("\n")
+            else self.old_content + "\n"
+        )
+        new = (
+            self.new_content
+            if self.new_content.endswith("\n")
+            else self.new_content + "\n"
+        )
 
         old_lines = old.splitlines(keepends=True)
         new_lines = new.splitlines(keepends=True)
 
-        old_name = '/dev/null' if self.is_new_file else str(self.path)
-        new_name = '/dev/null' if self.is_deletion else str(self.path)
+        old_name = "/dev/null" if self.is_new_file else str(self.path)
+        new_name = "/dev/null" if self.is_deletion else str(self.path)
 
         diff = difflib.unified_diff(
-            old_lines,
-            new_lines,
-            fromfile=old_name,
-            tofile=new_name
+            old_lines, new_lines, fromfile=old_name, tofile=new_name
         )
 
         return "".join(diff)
+
 
 @dataclass
 class ToolResult:
@@ -53,46 +61,29 @@ class ToolResult:
     metadata: dict[str, Any] = field(default_factory=dict)
     exit_code: int | None = None
 
-    truncated:bool = False
+    truncated: bool = False
     diff: FileDiff | None = None
 
     @classmethod
-    def error_result(
-        cls,
-        error:str,
-        output:str = "",
-        **kw_args: Any
-    ):
-        return cls(
-            success=False,
-            output=output,
-            error=error,
-            **kw_args
-        )
-    
+    def error_result(cls, error: str, output: str = "", **kw_args: Any):
+        return cls(success=False, output=output, error=error, **kw_args)
+
     @classmethod
-    def success_result(
-        cls,
-        output:str,
-        **kwargs: Any
-    ):
-        return cls(
-            success=True,
-            output=output,
-            error=None,
-            **kwargs
-        )
-    
+    def success_result(cls, output: str, **kwargs: Any):
+        return cls(success=True, output=output, error=None, **kwargs)
+
     def to_model_output(self) -> str:
         if self.success:
             return self.output
         return f"Error: {self.error}\n\nOutput:\n{self.output}"
 
+
 @dataclass
 class ToolConfirmation:
-    tool_name:str
+    tool_name: str
     params: dict[str, Any]
     description: str
+
 
 @dataclass
 class ToolInvocation:
@@ -111,9 +102,11 @@ class Tool(abc.ABC):
         self.config = config
 
     @property
-    def schema(self) -> dict[str, Any] | type['BaseModel']:
-        raise NotImplementedError("Tools must define schema property or class attribute")
-    
+    def schema(self) -> dict[str, Any] | type["BaseModel"]:
+        raise NotImplementedError(
+            "Tools must define schema property or class attribute"
+        )
+
     @abc.abstractmethod
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
         pass
@@ -126,60 +119,60 @@ class Tool(abc.ABC):
             except ValidationError as e:
                 errors = []
                 for error in e.errors():
-                    field = ".".join(str(x) for x in error.get("loc",[])) # finding location where these errors have occure and joining with .
-                    msg = error.get("msg","Validation error")
+                    field = ".".join(
+                        str(x) for x in error.get("loc", [])
+                    )  # finding location where these errors have occure and joining with .
+                    msg = error.get("msg", "Validation error")
                     errors.append(f"Parameter '{field}': {msg}")
                 return errors
             except Exception as e:
                 return [str(e)]
-        
+
         return []
-    
+
     def _is_mutating(self, params: dict[str, Any]) -> bool:
         return self.kind in {
             ToolKind.WRITE,
             ToolKind.SHELL,
             ToolKind.NETWORK,
             ToolKind.MEMORY,
-            }
-    
-    async def get_confirmation(self, invocation: ToolInvocation) -> ToolConfirmation | None:
+        }
+
+    async def get_confirmation(
+        self, invocation: ToolInvocation
+    ) -> ToolConfirmation | None:
         if not self._is_mutating(invocation.params):
             return None
-        
+
         return ToolConfirmation(
             tool_name=self.name,
             params=invocation.params,
-            description=f"Execute {self.name}"
+            description=f"Execute {self.name}",
         )
-    
 
     def to_openai_schema(self) -> dict[str, Any]:
         schema = self.schema
         if isinstance(schema, type) and issubclass(schema, BaseModel):
-            json_schema = model_json_schema(schema,mode="serialization")
-        
-            return {
-                'name':self.name,
-                'description': self.description,
-                'parameters': {
-                    'type': 'object',
-                    'properties': json_schema.get('properties',{}),
-                    'required': json_schema.get('required',[])
-                }
-            }
-        
-        if isinstance(schema, dict):
-            result = {'name': self.name, 'description': self.description}
+            json_schema = model_json_schema(schema, mode="serialization")
 
-            if 'parameters' in schema:
-                result['parameters'] = schema['parameters']
+            return {
+                "name": self.name,
+                "description": self.description,
+                "parameters": {
+                    "type": "object",
+                    "properties": json_schema.get("properties", {}),
+                    "required": json_schema.get("required", []),
+                },
+            }
+
+        if isinstance(schema, dict):
+            result = {"name": self.name, "description": self.description}
+
+            if "parameters" in schema:
+                result["parameters"] = schema["parameters"]
             else:
-                result['parameters'] = schema # type: ignore
+                result["parameters"] = schema  # type: ignore
 
             return result
-        
-        raise ValueError(f'Invalid schema type for tool {self.name}: {type(schema)}')
-        
- 
 
+        raise ValueError(f"Invalid schema type for tool {self.name}: {type(schema)}")

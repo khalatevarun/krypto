@@ -9,9 +9,10 @@ from config.config import Config
 from utils.errors import ConfigError
 import logging
 
-logger = logging.getLogger(__name__) 
-CONFIG_FILE_NAME = 'config.toml'
+logger = logging.getLogger(__name__)
+CONFIG_FILE_NAME = "config.toml"
 AGENT_MD_FILE = "AGENT.MD"
+
 
 def get_config_dir() -> Path:
     return Path(user_config_dir("krypto"))
@@ -20,25 +21,30 @@ def get_config_dir() -> Path:
 def get_system_config_path() -> Path:
     return get_config_dir() / CONFIG_FILE_NAME
 
+
 def _parse_toml(path: Path):
     try:
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             return tomllib.load(f)
     except TOMLDecodeError as e:
         raise ConfigError(f"Invalid TOML in {path}: {e}", config_file=str(path)) from e
     except (OSError, IOError) as e:
-        raise ConfigError(f"Failed to read config file {path}: {e}",config_file=str(path)) from e
-    
+        raise ConfigError(
+            f"Failed to read config file {path}: {e}", config_file=str(path)
+        ) from e
+
+
 def _get_project_config(cwd: Path) -> Path | None:
     current = cwd.resolve()
-    agent_dir = current / '.krypto'
+    agent_dir = current / ".krypto"
 
     if agent_dir.is_dir():
         config_file = agent_dir / CONFIG_FILE_NAME
         if config_file.is_file():
             return config_file
-        
+
     return None
+
 
 def _get_agent_md_files(cwd: Path) -> str | None:
     current = cwd.resolve()
@@ -46,10 +52,11 @@ def _get_agent_md_files(cwd: Path) -> str | None:
     if current.is_dir():
         agent_md_file = current / AGENT_MD_FILE
         if agent_md_file.is_file():
-            content = agent_md_file.read_text(encoding='utf-8')
+            content = agent_md_file.read_text(encoding="utf-8")
             return content
 
     return None
+
 
 def _merge_dicts(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     result = base.copy()

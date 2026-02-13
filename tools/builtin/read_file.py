@@ -6,7 +6,6 @@ from utils.text import count_tokens, truncate_text
 
 
 class ReadFileParams(BaseModel):
-
     path: str = Field(
         ...,
         description="Path to the file to read (relative to working directory or absolute)",
@@ -55,8 +54,8 @@ class ReadFileTool(Tool):
 
         if file_size > self.MAX_FILE_SIZE:
             return ToolResult.error_result(
-                f"File too large ({file_size / (1024*1024):.1f}MB). "
-                f"Maximum is {self.MAX_FILE_SIZE / (1024*1024):.0f}MB."
+                f"File too large ({file_size / (1024 * 1024):.1f}MB). "
+                f"Maximum is {self.MAX_FILE_SIZE / (1024 * 1024):.0f}MB."
             )
 
         if is_binary_file(path):
@@ -107,14 +106,14 @@ class ReadFileTool(Tool):
                 output = truncate_text(
                     output,
                     max_tokens=self.MAX_OUTPUT_TOKENS,
-                    suffix=f"\n... [truncated {total_lines} total lines]"
+                    suffix=f"\n... [truncated {total_lines} total lines]",
                 )
                 truncated = True
 
             metadata_lines = []
             if start_idx > 0 or end_idx < total_lines:
                 metadata_lines.append(
-                    f"Showing lines {start_idx+1}-{end_idx} of {total_lines}"
+                    f"Showing lines {start_idx + 1}-{end_idx} of {total_lines}"
                 )
 
             if metadata_lines:
