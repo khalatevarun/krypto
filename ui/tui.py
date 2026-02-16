@@ -84,6 +84,7 @@ class TUI:
             "edit": ["path", "replace_all", "old_string", "new_string"],
             "shell": ["command", "timeout", "cwd"],
             "list_dir": ["path", "include_hidden"],
+            "grep": ["path", "case_insensitive", "pattern"],
         }
 
         preferred = _PREFERRED_ORDER.get(tool_name, [])
@@ -289,7 +290,7 @@ class TUI:
             diff_display = truncate_text(diff_text, self._max_block_tokens)
             blocks.append(Syntax(diff_display, "diff", theme="monokai", word_wrap=True))
 
-        elif name == "shell":
+        elif name == "shell" and success :
             command = args.get("command")
             if isinstance(command, str) and command.strip():
                 blocks.append(Text(f"$ {command.strip()}", style="muted"))
@@ -303,7 +304,7 @@ class TUI:
                 Syntax(output_display, "text", theme="monokai", word_wrap=True)
             )
 
-        elif name == "list_dir":
+        elif name == "list_dir" and success:
             if isinstance(metadata, dict):
                 entries = metadata.get("entries")
                 path = metadata.get("path")
@@ -319,6 +320,24 @@ class TUI:
                 blocks.append(
                     Syntax(output_display, "text", theme="monokai", word_wrap=True)
                 )
+        elif name == "grep" and success:
+            if isinstance(metadata, dict):
+                matches = metadata.get("matches")
+                files_searched = metadata.get("files_searched")
+                summary = []
+                if isinstance(matches, int):
+                    summary.append(f"{matches} matches were found")
+                if isinstance(files_searched, int):
+                    summary.append(f"{files_searched} file searched")
+                
+                if not summary:
+                    blocks.append(Text(" . ".join(summary), style="muted"))
+
+                output_display = truncate_text(output, self._max_block_tokens)
+                blocks.append(
+                    Syntax(output_display, "text", theme="monokai", word_wrap=True)
+                )
+
 
         else:
             display_text = output
