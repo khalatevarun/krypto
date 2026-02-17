@@ -62,7 +62,7 @@ class TUI:
         self._tool_args_by_call_id: dict[str, dict[str, Any]] = {}
         self.config = config
         self.cwd = self.config.cwd
-        self._max_block_tokens = 240
+        self._max_block_tokens = 2400
 
     def begin_assistant(self) -> None:
         self.console.print()
@@ -371,6 +371,32 @@ class TUI:
                     theme="monokai",
                     word_wrap=True
                 ))
+
+        elif name == 'web_fetch' and success:
+            if isinstance(metadata, dict):
+                status_code = metadata.get("status_code")
+                content_length = metadata.get("content_length")
+                url = args.get('url')
+                summary = []
+                if isinstance(status_code, str):
+                    summary.append(status_code)
+                if isinstance(content_length, int):
+                    summary.append(f"{content_length} bytes")
+                if isinstance(url, str):
+                    summary.append(url)
+                
+                if summary:
+                    blocks.append(Text(" . ".join(summary), style="muted"))
+                
+                output_display = truncate_text(output, self._max_block_tokens)
+
+                blocks.append(Syntax(
+                    output_display,
+                    "text",
+                    theme="monokai",
+                    word_wrap=True
+                ))
+
 
         else:
             display_text = output
