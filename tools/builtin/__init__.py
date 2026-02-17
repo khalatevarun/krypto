@@ -5,10 +5,11 @@ from tools.builtin.grep import GrepTool
 from tools.builtin.list_dir import ListDirTool
 from tools.builtin.read_file import ReadFileTool
 from tools.builtin.shell import ShellTool
+from tools.builtin.websearch import WebSearch
 from tools.builtin.write_file import WriteFileTool
 
-__all__ = ["ReadFileTool", "WriteFileTool", "EditFileTool", "ShellTool", "ListDirTool", "GrepTool", "GlobTool"]
+__all__ = ["ReadFileTool", "WriteFileTool", "EditFileTool", "ShellTool", "ListDirTool", "GrepTool", "GlobTool", "WebSearch"]
 
 
 def get_all_builtin_tools() -> list[type[Tool]]:
-    return [ReadFileTool, WriteFileTool, EditFileTool, ShellTool, ListDirTool, GrepTool, GlobTool]
+    return [ReadFileTool, WriteFileTool, EditFileTool, ShellTool, ListDirTool, GrepTool, GlobTool, WebSearch]
