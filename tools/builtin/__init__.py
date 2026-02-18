@@ -9,8 +9,28 @@ from tools.builtin.webfetch import WebFetch
 from tools.builtin.websearch import WebSearch
 from tools.builtin.write_file import WriteFileTool
 
-__all__ = ["ReadFileTool", "WriteFileTool", "EditFileTool", "ShellTool", "ListDirTool", "GrepTool", "GlobTool", "WebSearch", "WebFetch"]
+__all__ = [
+    "ReadFileTool",
+    "WriteFileTool",
+    "EditFileTool",
+    "ShellTool",
+    "ListDirTool",
+    "GrepTool",
+    "GlobTool",
+    "WebSearch",
+    "WebFetch",
+]
 
 
 def get_all_builtin_tools() -> list[type[Tool]]:
-    return [ReadFileTool, WriteFileTool, EditFileTool, ShellTool, ListDirTool, GrepTool, GlobTool, WebSearch, WebFetch]
+    return [
+        ReadFileTool,
+        WriteFileTool,
+        EditFileTool,
+        ShellTool,
+        ListDirTool,
+        GrepTool,
+        GlobTool,
+        WebSearch,
+        WebFetch,
+    ]

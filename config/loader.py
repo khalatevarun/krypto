@@ -29,9 +29,7 @@ def _parse_toml(path: Path):
     except TOMLDecodeError as e:
         raise ConfigError(f"Invalid TOML in {path}: {e}", config_file=str(path)) from e
     except (OSError, IOError) as e:
-        raise ConfigError(
-            f"Failed to read config file {path}: {e}", config_file=str(path)
-        ) from e
+        raise ConfigError(f"Failed to read config file {path}: {e}", config_file=str(path)) from e
 
 
 def _get_project_config(cwd: Path) -> Path | None:

@@ -36,9 +36,7 @@ class Agent:
             raise RuntimeError("Session is not initialized")
 
         max_turns = self.session.config.max_turns
-        recent_tool_calls: list[
-            tuple[str, str]
-        ] = []  # (name, args_json) for loop detection
+        recent_tool_calls: list[tuple[str, str]] = []  # (name, args_json) for loop detection
 
         for turn in range(max_turns):
             self.session.increment_turn()
@@ -87,8 +85,7 @@ class Agent:
 
             # --- loop detection ---
             current_signatures = [
-                (tc.name or "", json.dumps(tc.arguments, sort_keys=True))
-                for tc in tool_calls
+                (tc.name or "", json.dumps(tc.arguments, sort_keys=True)) for tc in tool_calls
             ]
             if current_signatures == recent_tool_calls:
                 yield AgentEvent.text_delta(

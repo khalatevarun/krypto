@@ -30,16 +30,16 @@ BLOCKED_COMMANDS = {
 
 class ShellParams(BaseModel):
     command: str = Field(..., description="the shell command to execute")
-    timeout: int = Field(
-        120, ge=1, le=6, description="timeout in seconds (Default: 120)"
-    )
+    timeout: int = Field(120, ge=1, le=6, description="timeout in seconds (Default: 120)")
     cwd: str | None = Field(None, description="working directory for the command")
 
 
 class ShellTool(Tool):
     name = "shell"
     kind = ToolKind.SHELL
-    description = "Execute a shell command. Use this for running system command scripts and CLI tools."
+    description = (
+        "Execute a shell command. Use this for running system command scripts and CLI tools."
+    )
 
     @property
     def schema(self) -> type[ShellParams]:

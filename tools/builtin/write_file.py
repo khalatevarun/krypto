@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+
 from tools.base import FileDiff, Tool, ToolInvocation, ToolKind, ToolResult
 from utils.paths import ensure_parent_directory, resolve_path
 
@@ -42,7 +43,7 @@ class WriteFileTool(Tool):
                 ensure_parent_directory(path)
             elif not path.parent.exists():
                 return ToolResult.error_result(
-                    f"Parent directory does not exist: {path.parent}"
+                    f"Parent directory does not exist: {path.parent}",
                 )
             path.write_text(params.content, encoding="utf-8")
             action = "Created" if is_new_file else "Updated"

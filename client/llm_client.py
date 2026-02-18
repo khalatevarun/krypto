@@ -1,13 +1,15 @@
 import asyncio
-import time
 import logging
-from typing import Any, AsyncGenerator
-from openai import APIConnectionError, APIError, AsyncOpenAI, RateLimitError
+import time
+from collections.abc import AsyncGenerator
+from typing import Any
+
 from dotenv import load_dotenv
+from openai import APIConnectionError, APIError, AsyncOpenAI, RateLimitError
 
 from client.response import (
-    StreamEventType,
     StreamEvent,
+    StreamEventType,
     TextDelta,
     TokenUsage,
     ToolCall,
@@ -31,7 +33,8 @@ class LLMClient:
     def get_client(self) -> AsyncOpenAI:
         if self._client is None:
             self._client = AsyncOpenAI(
-                api_key=self.config.api_key, base_url=self.config.base_url
+                api_key=self.config.api_key,
+                base_url=self.config.base_url,
             )
         return self._client
 
@@ -47,9 +50,7 @@ class LLMClient:
                 "function": {
                     "name": tool["name"],
                     "description": tool.get("description", ""),
-                    "parameters": tool.get(
-                        "parameters", {"type": "object", "properties": {}}
-                    ),
+                    "parameters": tool.get("parameters", {"type": "object", "properties": {}}),
                 },
             }
             for tool in tools
@@ -101,24 +102,18 @@ class LLMClient:
                         except (ValueError, TypeError):
                             pass
 
-                logger.warning(
-                    f"[LLM] Rate limit hit, attempt {attempt}, waiting {wait_time:.1f}s"
-                )
+                logger.warning(f"[LLM] Rate limit hit, attempt {attempt}, waiting {wait_time:.1f}s")
                 if attempt < self._max_retries:
                     await asyncio.sleep(wait_time)
                 else:
-                    yield StreamEvent(
-                        type=StreamEventType.ERROR, error=f"Rate limit exceeded: {e}"
-                    )
+                    yield StreamEvent(type=StreamEventType.ERROR, error=f"Rate limit exceeded: {e}")
                     return
             except APIConnectionError as e:
                 if attempt < self._max_retries:
                     wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
-                    yield StreamEvent(
-                        type=StreamEventType.ERROR, error=f"Connection error: {e}"
-                    )
+                    yield StreamEvent(type=StreamEventType.ERROR, error=f"Connection error: {e}")
                     return
             except APIError as e:
                 yield StreamEvent(type=StreamEventType.ERROR, error=f"API error: {e}")
@@ -175,9 +170,7 @@ class LLMClient:
                                     ),
                                 )
                             if tool_call_delta.function.arguments:
-                                tool_calls[idx]["arguments"] += (
-                                    tool_call_delta.function.arguments
-                                )
+                                tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
                                 yield StreamEvent(
                                     type=StreamEventType.TOOL_CALL__DETAILS_DELTA,
                                     tool_call_delta=ToolCallDelta(

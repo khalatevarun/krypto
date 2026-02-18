@@ -1,15 +1,15 @@
+import re
 from pathlib import Path
 from typing import Any
-from rich.console import Console
-from rich.theme import Theme
-from rich.rule import Rule
-from rich.text import Text
-from rich.panel import Panel
-from rich.table import Table
+
 from rich import box
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.rule import Rule
 from rich.syntax import Syntax
-from rich.console import Group
-import re
+from rich.table import Table
+from rich.text import Text
+from rich.theme import Theme
 
 from config.config import Config
 from utils.paths import display_path_relative_to_cwd
@@ -85,7 +85,7 @@ class TUI:
             "shell": ["command", "timeout", "cwd"],
             "list_dir": ["path", "include_hidden"],
             "grep": ["path", "case_insensitive", "pattern"],
-            "glob": ["path", "pattern"]
+            "glob": ["path", "pattern"],
         }
 
         preferred = _PREFERRED_ORDER.get(tool_name, [])
@@ -138,7 +138,10 @@ class TUI:
                 display_args[key] = str(display_path_relative_to_cwd(val, self.cwd))
 
         panel = Panel(
-            self._render_args_table(name, display_args)
+            self._render_args_table(
+                name,
+                display_args,
+            )
             if display_args
             else Text("(no args)"),
             style="muted",
@@ -291,7 +294,7 @@ class TUI:
             diff_display = truncate_text(diff_text, self._max_block_tokens)
             blocks.append(Syntax(diff_display, "diff", theme="monokai", word_wrap=True))
 
-        elif name == "shell" and success :
+        elif name == "shell" and success:
             command = args.get("command")
             if isinstance(command, str) and command.strip():
                 blocks.append(Text(f"$ {command.strip()}", style="muted"))
@@ -301,9 +304,7 @@ class TUI:
 
             output_display = truncate_text(output, self._max_block_tokens)
 
-            blocks.append(
-                Syntax(output_display, "text", theme="monokai", word_wrap=True)
-            )
+            blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
 
         elif name == "list_dir" and success:
             if isinstance(metadata, dict):
@@ -318,9 +319,7 @@ class TUI:
                     blocks.append(Text(" . ".join(summary), style="muted"))
 
                 output_display = truncate_text(output, self._max_block_tokens)
-                blocks.append(
-                    Syntax(output_display, "text", theme="monokai", word_wrap=True)
-                )
+                blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
         elif name == "grep" and success:
             if isinstance(metadata, dict):
                 matches = metadata.get("matches")
@@ -330,53 +329,44 @@ class TUI:
                     summary.append(f"{matches} matches were found")
                 if isinstance(files_searched, int):
                     summary.append(f"{files_searched} file searched")
-                
+
                 if not summary:
                     blocks.append(Text(" . ".join(summary), style="muted"))
 
                 output_display = truncate_text(output, self._max_block_tokens)
-                blocks.append(
-                    Syntax(output_display, "text", theme="monokai", word_wrap=True)
-                )
-        
+                blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
+
         elif name == "glob" and success:
             if isinstance(metadata, dict):
                 matches = metadata.get("matches")
                 files_searched = metadata.get("files_searched")
                 if isinstance(matches, int):
-                    blocks.append(Text(f"{matches} matches", style='muted'))
-                
+                    blocks.append(Text(f"{matches} matches", style="muted"))
+
                 output_display = truncate_text(output, self._max_block_tokens)
-                blocks.append(
-                    Syntax(output_display, "text", theme="monokai", word_wrap=True)
-                )
-        elif name == 'web_search' and success:
+                blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
+        elif name == "web_search" and success:
             if isinstance(metadata, dict):
-                results = metadata.get('results')
-                query = args.get('query')
+                results = metadata.get("results")
+                query = args.get("query")
                 summary = []
                 if isinstance(query, str):
                     summary.append(query)
                 if isinstance(results, int):
                     summary.append(f"{results} results")
-                
+
                 if summary:
                     blocks.append(Text(" . ".join(summary), style="muted"))
-                
+
                 output_display = truncate_text(output, self._max_block_tokens)
 
-                blocks.append(Syntax(
-                    output_display,
-                    "text",
-                    theme="monokai",
-                    word_wrap=True
-                ))
+                blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
 
-        elif name == 'web_fetch' and success:
+        elif name == "web_fetch" and success:
             if isinstance(metadata, dict):
                 status_code = metadata.get("status_code")
                 content_length = metadata.get("content_length")
-                url = args.get('url')
+                url = args.get("url")
                 summary = []
                 if isinstance(status_code, str):
                     summary.append(status_code)
@@ -384,19 +374,13 @@ class TUI:
                     summary.append(f"{content_length} bytes")
                 if isinstance(url, str):
                     summary.append(url)
-                
+
                 if summary:
                     blocks.append(Text(" . ".join(summary), style="muted"))
-                
+
                 output_display = truncate_text(output, self._max_block_tokens)
 
-                blocks.append(Syntax(
-                    output_display,
-                    "text",
-                    theme="monokai",
-                    word_wrap=True
-                ))
-
+                blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
 
         else:
             display_text = output
@@ -405,9 +389,7 @@ class TUI:
             elif not success and not output:
                 display_text = "Unknown error"
             output_display = truncate_text(display_text, self._max_block_tokens)
-            blocks.append(
-                Syntax(output_display, "text", theme="monokai", word_wrap=False)
-            )
+            blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=False))
 
         if truncated:
             blocks.append(Text("note: tool output was truncated", style="warning"))

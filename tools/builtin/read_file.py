@@ -60,9 +60,7 @@ class ReadFileTool(Tool):
 
         if is_binary_file(path):
             file_size_mb = file_size / (1024 * 1024)
-            size_str = (
-                f"{file_size_mb:.2f}MB" if file_size_mb >= 1 else f"{file_size} bytes"
-            )
+            size_str = f"{file_size_mb:.2f}MB" if file_size_mb >= 1 else f"{file_size} bytes"
             return ToolResult.error_result(
                 f"Cannot read binary file: {path.name} ({size_str}) "
                 f"This tool only reads text files."
@@ -112,9 +110,7 @@ class ReadFileTool(Tool):
 
             metadata_lines = []
             if start_idx > 0 or end_idx < total_lines:
-                metadata_lines.append(
-                    f"Showing lines {start_idx + 1}-{end_idx} of {total_lines}"
-                )
+                metadata_lines.append(f"Showing lines {start_idx + 1}-{end_idx} of {total_lines}")
 
             if metadata_lines:
                 header = " | ".join(metadata_lines) + "\n\n"

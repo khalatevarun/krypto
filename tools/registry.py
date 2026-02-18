@@ -48,9 +48,7 @@ class ToolRegistry:
     async def invoke(self, name: str, params: dict[str, Any], cwd: Path) -> ToolResult:
         tool = self.get(name)
         if tool is None:
-            return ToolResult.error_result(
-                f"Unknown tool: {name}", metadata={"tool_name": name}
-            )
+            return ToolResult.error_result(f"Unknown tool: {name}", metadata={"tool_name": name})
 
         validation_errors = tool.validate_params(params)
         if validation_errors:

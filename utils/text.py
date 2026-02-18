@@ -48,9 +48,7 @@ def truncate_text(
         return _truncate_by_chars(text, target_tokens, suffix)
 
 
-def _truncate_by_lines(
-    text: str, target_tokens: int, suffix: str, model: str = "gpt-4"
-) -> str:
+def _truncate_by_lines(text: str, target_tokens: int, suffix: str, model: str = "gpt-4") -> str:
     lines = text.split("\n")
     result_lines: list[str] = []
     current_tokens = 0
@@ -69,9 +67,7 @@ def _truncate_by_lines(
     return "\n".join(result_lines) + suffix
 
 
-def _truncate_by_chars(
-    text: str, target_tokens: int, suffix: str, model: str = "gpt-4"
-) -> str:
+def _truncate_by_chars(text: str, target_tokens: int, suffix: str, model: str = "gpt-4") -> str:
     # Binary search for the right length
     low, high = 0, len(text)
 

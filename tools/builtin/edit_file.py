@@ -99,9 +99,7 @@ class EditFileTool(Tool):
             replace_count = 1
 
         if new_content == old_content:
-            return ToolResult.error_result(
-                "No change made - old_string equals new_string"
-            )
+            return ToolResult.error_result("No change made - old_string equals new_string")
 
         try:
             path.write_text(new_content, encoding="utf-8")
@@ -148,7 +146,9 @@ class EditFileTool(Tool):
             error_msg += "\n\nPossible similar lines:"
             for line_num, line_preview in partial_matches:
                 error_msg += f"\n  Line {line_num}: {line_preview}"
-            error_msg += "\n\nMake sure old_string matches exactly (including whitespace and indentation)."
+            error_msg += (
+                "\n\nMake sure old_string matches exactly (including whitespace and indentation)."
+            )
         else:
             error_msg += (
                 " Make sure the text matches exactly, including:\n"

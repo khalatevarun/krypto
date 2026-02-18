@@ -35,18 +35,14 @@ class AgentEvent:
         )
 
     @classmethod
-    def agent_end(
-        cls, response: str | None = None, usage: TokenUsage | None = None
-    ) -> AgentEvent:
+    def agent_end(cls, response: str | None = None, usage: TokenUsage | None = None) -> AgentEvent:
         return cls(
             type=AgentEventType.AGENT_END,
             data={"response": response, "usage": usage.__dict__ if usage else None},
         )
 
     @classmethod
-    def agent_error(
-        cls, error: str, details: dict[str, Any] | None = None
-    ) -> AgentEvent:
+    def agent_error(cls, error: str, details: dict[str, Any] | None = None) -> AgentEvent:
         return cls(
             type=AgentEventType.AGENT_ERROR,
             data={"error": error, "details": details or {}},

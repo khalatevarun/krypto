@@ -5,9 +5,7 @@ from utils.paths import resolve_path
 
 
 class ListDirParams(BaseModel):
-    path: str = Field(
-        ".", description="Directory path to list (default: current directory)"
-    )
+    path: str = Field(".", description="Directory path to list (default: current directory)")
     include_hidden: bool = Field(
         False,
         description="Whether to include hidden files and directories (default: false)",
@@ -32,9 +30,7 @@ class ListDirTool(Tool):
             return ToolResult.error_result(f"Directory does not exist: {dir_path}")
 
         try:
-            items = sorted(
-                dir_path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())
-            )
+            items = sorted(dir_path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
         except Exception:
             return ToolResult.error_result("Error listing directory")
 

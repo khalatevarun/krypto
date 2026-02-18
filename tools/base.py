@@ -29,16 +29,8 @@ class FileDiff:
     def to_diff(self) -> str:
         import difflib
 
-        old = (
-            self.old_content
-            if self.old_content.endswith("\n")
-            else self.old_content + "\n"
-        )
-        new = (
-            self.new_content
-            if self.new_content.endswith("\n")
-            else self.new_content + "\n"
-        )
+        old = self.old_content if self.old_content.endswith("\n") else self.old_content + "\n"
+        new = self.new_content if self.new_content.endswith("\n") else self.new_content + "\n"
 
         old_lines = old.splitlines(keepends=True)
         new_lines = new.splitlines(keepends=True)
@@ -46,9 +38,7 @@ class FileDiff:
         old_name = "/dev/null" if self.is_new_file else str(self.path)
         new_name = "/dev/null" if self.is_deletion else str(self.path)
 
-        diff = difflib.unified_diff(
-            old_lines, new_lines, fromfile=old_name, tofile=new_name
-        )
+        diff = difflib.unified_diff(old_lines, new_lines, fromfile=old_name, tofile=new_name)
 
         return "".join(diff)
 
@@ -103,9 +93,7 @@ class Tool(abc.ABC):
 
     @property
     def schema(self) -> dict[str, Any] | type["BaseModel"]:
-        raise NotImplementedError(
-            "Tools must define schema property or class attribute"
-        )
+        raise NotImplementedError("Tools must define schema property or class attribute")
 
     @abc.abstractmethod
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
@@ -138,9 +126,7 @@ class Tool(abc.ABC):
             ToolKind.MEMORY,
         }
 
-    async def get_confirmation(
-        self, invocation: ToolInvocation
-    ) -> ToolConfirmation | None:
+    async def get_confirmation(self, invocation: ToolInvocation) -> ToolConfirmation | None:
         if not self._is_mutating(invocation.params):
             return None
 
