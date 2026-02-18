@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 import abc
 from dataclasses import dataclass, field
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
+
 from pydantic import BaseModel, ValidationError
-from enum import Enum
 from pydantic.json_schema import model_json_schema
 
 
-class ToolKind(str, Enum):
+class ToolKind(StrEnum):
     READ = "read"
     WRITE = "write"
     SHELL = "shell"
@@ -92,7 +94,7 @@ class Tool(abc.ABC):
         self.config = config
 
     @property
-    def schema(self) -> dict[str, Any] | type["BaseModel"]:
+    def schema(self) -> dict[str, Any] | type[BaseModel]:
         raise NotImplementedError("Tools must define schema property or class attribute")
 
     @abc.abstractmethod

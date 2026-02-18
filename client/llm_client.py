@@ -159,26 +159,29 @@ class LLMClient:
                             "arguments": "",
                         }
 
-                        if tool_call_delta.function:
-                            if tool_call_delta.function.name:
-                                tool_calls[idx]["name"] = tool_call_delta.function.name
-                                yield StreamEvent(
-                                    type=StreamEventType.TOOL_CALL_DETAILS_START,
-                                    tool_call_delta=ToolCallDelta(
-                                        call_id=tool_calls[idx]["id"],
-                                        name=tool_calls[idx]["name"],
-                                    ),
-                                )
-                            if tool_call_delta.function.arguments:
-                                tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
-                                yield StreamEvent(
-                                    type=StreamEventType.TOOL_CALL__DETAILS_DELTA,
-                                    tool_call_delta=ToolCallDelta(
-                                        call_id=tool_calls[idx]["id"],
-                                        name=tool_calls[idx]["name"],
-                                        arguments_delta=tool_call_delta.function.arguments,
-                                    ),
-                                )
+                    if tool_call_delta.id:
+                        tool_calls[idx]["id"] = tool_call_delta.id
+
+                    if tool_call_delta.function:
+                        if tool_call_delta.function.name:
+                            tool_calls[idx]["name"] = tool_call_delta.function.name
+                            yield StreamEvent(
+                                type=StreamEventType.TOOL_CALL_DETAILS_START,
+                                tool_call_delta=ToolCallDelta(
+                                    call_id=tool_calls[idx]["id"],
+                                    name=tool_calls[idx]["name"],
+                                ),
+                            )
+                        if tool_call_delta.function.arguments:
+                            tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
+                            yield StreamEvent(
+                                type=StreamEventType.TOOL_CALL__DETAILS_DELTA,
+                                tool_call_delta=ToolCallDelta(
+                                    call_id=tool_calls[idx]["id"],
+                                    name=tool_calls[idx]["name"],
+                                    arguments_delta=tool_call_delta.function.arguments,
+                                ),
+                            )
 
         for idx, tc in tool_calls.items():
             yield StreamEvent(

@@ -35,7 +35,7 @@ AGENT_THEME = Theme(
         "tool.write": "yellow",
         "tool.shell": "magenta",
         "tool.network": "bright_blue",
-        "tool.memoery": "green",
+        "tool.memory": "green",
         "tool.mcp": "bright_cyan",
         "code": "white",
     }
@@ -381,6 +381,14 @@ class TUI:
                 output_display = truncate_text(output, self._max_block_tokens)
 
                 blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
+
+        elif name == "todos" and success:
+            output_display = truncate_text(
+                output,
+                self._max_block_tokens,
+            )
+
+            blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
 
         else:
             display_text = output

@@ -1,10 +1,10 @@
 # manages entire dictionary of tools
+import logging
 from pathlib import Path
 from typing import Any
+
 from config.config import Config
 from tools.base import Tool, ToolInvocation, ToolResult
-import logging
-
 from tools.builtin import get_all_builtin_tools
 
 logger = logging.getLogger(__name__)
@@ -62,9 +62,7 @@ class ToolRegistry:
             result = await tool.execute(invocation)
         except Exception as e:
             logger.exception(f"tool {name} raised unexpected error")
-            result = ToolResult.error_result(
-                f"Internal error: {str(e)}", metadata={"tool_name", name}
-            )
+            result = ToolResult.error_result(f"Internal error: {e!s}", metadata={"tool_name", name})
 
         return result
 
