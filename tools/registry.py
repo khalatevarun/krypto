@@ -74,3 +74,13 @@ def create_default_regsitry(config: Config) -> ToolRegistry:
         registry.register(tool_class(config))
 
     return registry
+
+
+def create_registry_with_order(config: Config, tool_classes: list[type[Tool]]) -> ToolRegistry:
+    """Create a registry with tools registered in the specified order."""
+    registry = ToolRegistry()
+
+    for tool_class in tool_classes:
+        registry.register(tool_class(config))
+
+    return registry

@@ -23,6 +23,27 @@ __all__ = [
     "WriteFileTool",
 ]
 
+# Map tool class names to classes for easy lookup by name
+TOOL_CLASS_MAP: dict[str, type[Tool]] = {
+    "TodosTool": TodosTool,
+    "ListDirTool": ListDirTool,
+    "ReadFileTool": ReadFileTool,
+    "WriteFileTool": WriteFileTool,
+    "EditFileTool": EditFileTool,
+    "ShellTool": ShellTool,
+    "GrepTool": GrepTool,
+    "GlobTool": GlobTool,
+    "WebSearch": WebSearch,
+    "WebFetch": WebFetch,
+}
+
+
+def get_tool_class_by_name(name: str) -> type[Tool]:
+    """Get a tool class by its class name string."""
+    if name not in TOOL_CLASS_MAP:
+        raise ValueError(f"Unknown tool class: {name}. Available: {list(TOOL_CLASS_MAP.keys())}")
+    return TOOL_CLASS_MAP[name]
+
 
 def get_all_builtin_tools() -> list[type[Tool]]:
     return [
