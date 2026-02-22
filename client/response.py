@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 
@@ -13,7 +13,7 @@ class TextDelta:
         return self.content
 
 
-class StreamEventType(str, Enum):
+class StreamEventType(StrEnum):
     TEXT_DELTA = "text_delta"
     MESSAGE_COMPLETE = "message_complete"
     ERROR = "error"

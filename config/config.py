@@ -21,6 +21,7 @@ class Config(BaseModel):
     model: ModelConfig = Field(default_factory=ModelConfig)
     cwd: Path = Field(default_factory=Path.cwd)
     shell_environment: ShellEnvironmentPolicy = Field(default_factory=ShellEnvironmentPolicy)
+    subagents: dict[str, Any] = Field(default_factory=dict)
 
     max_turns: int = 100
 

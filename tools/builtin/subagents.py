@@ -11,6 +11,17 @@ class SubAgentParams(BaseModel):
     goal: str = Field(..., description="the specific task or goal for the subagent to accomplish")
 
 
+def subagent_def_from_config(name: str, cfg: dict[str, Any]):
+    from tools.builtin.subagents import SubagentDefinition
+
+    return SubagentDefinition(
+        name=name,
+        goal_prompt=cfg.get("goal_prompt", ""),
+        description=cfg.get("description", ""),
+        allowed_tools=cfg.get("allowed_tools", []),
+    )
+
+
 @dataclass
 class SubagentDefinition:
     name: str
@@ -111,15 +122,15 @@ class SubagentTool(Tool):
         return ToolResult.success_result(result)
 
 
-CODEBASE_INVESTIGATOR = SubagentDefinition(
-    name="codebase_investigator",
-    description="Investigates the codebase to answer questions about code structure, patterns, and implementations",
-    goal_prompt="""You are a codebase investigation specialist.
-Your job is to explore and understand code to answer questions.
-Use read_file, grep, glob, and list_dir to investigate.
-Do NOT modify any files.""",
-    allowed_tools=["read_file", "grep", "glob", "list_dir"],
-)
+# CODEBASE_INVESTIGATOR = SubagentDefinition(
+#     name="codebase_investigator",
+#     description="Investigates the codebase to answer questions about code structure, patterns, and implementations",
+#     goal_prompt="""You are a codebase investigation specialist.
+# Your job is to explore and understand code to answer questions.
+# Use read_file, grep, glob, and list_dir to investigate.
+# Do NOT modify any files.""",
+#     allowed_tools=["read_file", "grep", "glob", "list_dir"],
+# )
 
 CODE_REVIEWER = SubagentDefinition(
     name="code_reviewer",
@@ -137,6 +148,6 @@ Do NOT modify any files.""",
 
 def get_default_subagent_definitions() -> list[SubagentDefinition]:
     return [
-        CODEBASE_INVESTIGATOR,
+        # CODEBASE_INVESTIGATOR,
         CODE_REVIEWER,
     ]

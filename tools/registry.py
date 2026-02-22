@@ -6,7 +6,11 @@ from typing import Any
 from config.config import Config
 from tools.base import Tool, ToolInvocation, ToolResult
 from tools.builtin import get_all_builtin_tools
-from tools.builtin.subagents import SubagentTool, get_default_subagent_definitions
+from tools.builtin.subagents import (
+    SubagentTool,
+    get_default_subagent_definitions,
+    subagent_def_from_config,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -81,5 +85,10 @@ def create_default_regsitry(config: Config) -> ToolRegistry:
 
     for subagent_def in get_default_subagent_definitions():
         registry.register(SubagentTool(config, subagent_def))
+
+    if hasattr(config, "subagents") and config.subagents:
+        for name, sub_cfg in config.subagents.items():
+            subagent_def = subagent_def_from_config(name, sub_cfg)
+            registry.register(SubagentTool(config, subagent_def))
 
     return registry

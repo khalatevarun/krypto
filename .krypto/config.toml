@@ -1,3 +1,11 @@
 [model]
 name = "arcee-ai/trinity-large-preview:free"
 temperature = 0
+
+[subagents.codebase_investigator]
+description="Investigates the codebase to answer questions about code structure, patterns, and implementations"
+goal_prompt="""You are a codebase investigation specialist.
+Your job is to explore and understand code to answer questions.
+Use read_file, grep, glob, and list_dir to investigate.
+Do NOT modify any files."""
+allowed_tools=["read_file", "grep", "glob", "list_dir"]
