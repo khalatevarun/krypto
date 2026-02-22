@@ -390,14 +390,42 @@ class TUI:
 
             blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
 
+        elif name == "memory" and success:
+            action = args.get("action")
+            key = args.get("key")
+            summary = []
+            if isinstance(action, str) and action:
+                summary.append(action)
+
+            if isinstance(key, str) and key:
+                summary.append(key)
+
+            if summary:
+                blocks.append(Text(" . ".join(summary), style="muted"))
+
+            output_display = truncate_text(
+                output,
+                self._max_block_tokens,
+            )
+
+            blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=True))
+
         else:
-            display_text = output
-            if not success and error:
-                display_text = error
-            elif not success and not output:
-                display_text = "Unknown error"
-            output_display = truncate_text(display_text, self._max_block_tokens)
-            blocks.append(Syntax(output_display, "text", theme="monokai", word_wrap=False))
+            if error and not success:
+                blocks.append(Text(error, style="error"))
+
+            output_display = truncate_text(output, self._max_block_tokens)
+            if output_display.strip():
+                blocks.append(
+                    Syntax(
+                        output_display,
+                        "text",
+                        theme="monokai",
+                        word_wrap=True,
+                    )
+                )
+            else:
+                blocks.append(Text("(no output)", style="muted"))
 
         if truncated:
             blocks.append(Text("note: tool output was truncated", style="warning"))

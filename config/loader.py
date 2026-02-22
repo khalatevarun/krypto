@@ -1,13 +1,13 @@
+import logging
+import tomllib
 from pathlib import Path
 from tomllib import TOMLDecodeError
-import tomllib
 from typing import Any
 
-from platformdirs import user_config_dir
+from platformdirs import user_config_dir, user_data_dir
 
 from config.config import Config
 from utils.errors import ConfigError
-import logging
 
 logger = logging.getLogger(__name__)
 CONFIG_FILE_NAME = "config.toml"
@@ -16,6 +16,10 @@ AGENT_MD_FILE = "AGENT.MD"
 
 def get_config_dir() -> Path:
     return Path(user_config_dir("krypto"))
+
+
+def get_data_dir() -> Path:
+    return Path(user_data_dir("krypto"))
 
 
 def get_system_config_path() -> Path:
@@ -28,7 +32,7 @@ def _parse_toml(path: Path):
             return tomllib.load(f)
     except TOMLDecodeError as e:
         raise ConfigError(f"Invalid TOML in {path}: {e}", config_file=str(path)) from e
-    except (OSError, IOError) as e:
+    except OSError as e:
         raise ConfigError(f"Failed to read config file {path}: {e}", config_file=str(path)) from e
 
 

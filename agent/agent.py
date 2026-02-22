@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 import json
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from agent.events import AgentEvent, AgentEventType
 from agent.session import Session
@@ -125,6 +126,8 @@ class Agent:
                 self.session.context_manager.add_tool_result(
                     tool_result.tool_call_id, tool_result.content
                 )
+
+        yield AgentEvent.agent_error(f"Maximum turns ({max_turns}) reached")
 
     async def __aenter__(self) -> Agent:
         return self
