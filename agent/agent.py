@@ -13,6 +13,9 @@ class Agent:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.session: Session | None = Session(config)
+        # Ensure context_manager is initialized
+        if self.session and not hasattr(self.session, "context_manager"):
+            raise AttributeError("Session missing context_manager attribute")
 
     async def run(self, message: str):
         if self.session is None:
@@ -20,6 +23,8 @@ class Agent:
 
         yield AgentEvent.agent_start(message)
         # add user message to context
+        if not self.session.context_manager:
+            raise AttributeError("Session context_manager is None")
         self.session.context_manager.add_user_message(message)
 
         final_response: str | None = None
@@ -39,12 +44,14 @@ class Agent:
         max_turns = self.session.config.max_turns
         recent_tool_calls: list[tuple[str, str]] = []  # (name, args_json) for loop detection
 
-        for turn in range(max_turns):
+        for _ in range(max_turns):
             self.session.increment_turn()
             response_text = ""
             tools_schemas = self.session.tool_registry.get_schemas()
             tool_calls: list[ToolCall] = []
 
+            if not self.session.context_manager:
+                raise AttributeError("Session context_manager is None")
             async for event in self.session.client.chat_completion(
                 self.session.context_manager.get_messages(),
                 tools=tools_schemas if tools_schemas else None,
@@ -62,6 +69,8 @@ class Agent:
                 elif event.type == StreamEventType.ERROR:
                     yield AgentEvent.agent_error(event.error or "Uknown error occured.")
 
+            if not self.session.context_manager:
+                raise AttributeError("Session context_manager is None")
             self.session.context_manager.add_assistant_message(
                 response_text or "",
                 [
@@ -123,6 +132,8 @@ class Agent:
                 )
 
             for tool_result in tool_call_results:
+                if not self.session.context_manager:
+                    raise AttributeError("Session context_manager is None")
                 self.session.context_manager.add_tool_result(
                     tool_result.tool_call_id, tool_result.content
                 )
@@ -130,6 +141,9 @@ class Agent:
         yield AgentEvent.agent_error(f"Maximum turns ({max_turns}) reached")
 
     async def __aenter__(self) -> Agent:
+        if not self.session:
+            raise RuntimeError("Session is not initialized")
+        await self.session.initialize()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:

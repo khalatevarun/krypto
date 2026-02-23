@@ -9,3 +9,7 @@ Your job is to explore and understand code to answer questions.
 Use read_file, grep, glob, and list_dir to investigate.
 Do NOT modify any files."""
 allowed_tools=["read_file", "grep", "glob", "list_dir"]
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/varunk/playground/krypto", "/tmp"]
