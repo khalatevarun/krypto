@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from client.response import TokenUsage
@@ -15,6 +16,7 @@ class MessageItem:
     token_count: int | None = None
     tool_call_id: str | None = None
     tool_calls: list[dict[str, Any]] = field(default_factory=list)
+    pruned_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {"role": self.role}
@@ -32,6 +34,9 @@ class MessageItem:
 
 
 class ContextManager:
+    PRUNE_PROTECT_TOKENS = 40_000
+    PRUNE_MINIMUM_TOKENS = 20_000
+
     def __init__(self, config: Config, user_memory: str | None, tools: list[Tool] | None) -> None:
         self.config = config
         self._system_prompt = get_system_prompt(self.config, user_memory, tools)
@@ -141,3 +146,36 @@ I'll continue with the REMAINING tasks only, starting from where we left off."""
             token_count=count_tokens(continue_content, self._model_name),
         )
         self._messages.append(continue_item)
+
+    def prune_tool_outputs(self) -> int:
+        user_message_count = sum(1 for msg in self._messages if msg.role == "user")
+
+        if user_message_count < 2:
+            return 0
+
+        total_tokens = 0
+        pruned_tokens = 0
+        to_prune: list[MessageItem] = []
+        for msg in reversed(self._messages):
+            if msg.role == "tool" and msg.tool_call_id:
+                if msg.pruned_at:
+                    break
+                tokens = msg.token_count or count_tokens(msg.content or "")
+                total_tokens += tokens
+
+                if total_tokens > self.PRUNE_PROTECT_TOKENS:
+                    pruned_tokens += tokens
+                    to_prune.append(msg)
+
+        if pruned_tokens < self.PRUNE_MINIMUM_TOKENS:
+            return 0
+
+        pruned_count = 0
+
+        for msg in to_prune:
+            msg.content = "[Old tool result content cleared]"
+            msg.token_count = count_tokens(msg.content)
+            msg.pruned_at = datetime.now()
+            pruned_count += 1
+
+        return pruned_count

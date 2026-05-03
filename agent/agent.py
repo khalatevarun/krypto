@@ -109,6 +109,7 @@ class Agent:
                 if usage:
                     self.session.context_manager.set_latest_usage(usage)
                     self.session.context_manager.add_usage(usage)
+
                 return
 
             # --- loop detection ---
@@ -159,6 +160,8 @@ class Agent:
             if usage:
                 self.session.context_manager.set_latest_usage(usage)
                 self.session.context_manager.add_usage(usage)
+
+            self.session.context_manager.prune_tool_outputs()
 
         # TODO: notify the user using AgentEvent that the compaction took place - a good user experience
 
