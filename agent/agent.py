@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 
 from agent.events import AgentEvent, AgentEventType
 from agent.session import Session
-from client.response import StreamEventType, ToolCall, ToolResultMessage
+from client.response import StreamEventType, TokenUsage, ToolCall, ToolResultMessage
 from config.config import Config
 
 
@@ -41,14 +41,27 @@ class Agent:
         if self.session is None:
             raise RuntimeError("Session is not initialized")
 
+        if (
+            self.session.context_manager is not None
+            and self.session.context_manager.needs_compression()
+        ):
+            summary, usage = await self.session.chatcompactor.compress(self.session.context_manager)
+
+            if summary and usage:
+                self.session.context_manager.replace_with_summary(summary)
+                self.session.context_manager.set_latest_usage(usage)
+                self.session.context_manager.add_usage(usage)
+
         max_turns = self.session.config.max_turns
         recent_tool_calls: list[tuple[str, str]] = []  # (name, args_json) for loop detection
 
         for _ in range(max_turns):
             self.session.increment_turn()
             response_text = ""
+
             tools_schemas = self.session.tool_registry.get_schemas()
             tool_calls: list[ToolCall] = []
+            usage: TokenUsage | None = None
 
             if not self.session.context_manager:
                 raise AttributeError("Session context_manager is None")
@@ -68,6 +81,8 @@ class Agent:
 
                 elif event.type == StreamEventType.ERROR:
                     yield AgentEvent.agent_error(event.error or "Uknown error occured.")
+                elif event.type == StreamEventType.MESSAGE_COMPLETE:
+                    usage = event.usage
 
             if not self.session.context_manager:
                 raise AttributeError("Session context_manager is None")
@@ -91,6 +106,9 @@ class Agent:
                 yield AgentEvent.text_complete(response_text)
 
             if not tool_calls:
+                if usage:
+                    self.session.context_manager.set_latest_usage(usage)
+                    self.session.context_manager.add_usage(usage)
                 return
 
             # --- loop detection ---
@@ -138,6 +156,12 @@ class Agent:
                     tool_result.tool_call_id, tool_result.content
                 )
 
+            if usage:
+                self.session.context_manager.set_latest_usage(usage)
+                self.session.context_manager.add_usage(usage)
+
+        # TODO: notify the user using AgentEvent that the compaction took place - a good user experience
+
         yield AgentEvent.agent_error(f"Maximum turns ({max_turns}) reached")
 
     async def __aenter__(self) -> Agent:
@@ -149,4 +173,5 @@ class Agent:
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         if self.session and self.session.client:
             await self.session.client.close()
+            await self.session.mcp_manager.shutdown()
             self.session = None

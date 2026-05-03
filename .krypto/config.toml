@@ -1,5 +1,5 @@
 [model]
-name = "arcee-ai/trinity-large-preview:free"
+name = "tencent/hy3-preview:free"
 temperature = 0
 
 [subagents.codebase_investigator]

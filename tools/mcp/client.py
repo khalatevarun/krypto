@@ -49,6 +49,7 @@ class MCPClient:
                 args=list(self.config.args),
                 env=env,
                 cwd=str(self.config.cwd or self.cwd),
+                log_file=Path(os.devnull),
             )
         else:
             if self.config.url is None:

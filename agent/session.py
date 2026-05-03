@@ -5,6 +5,7 @@ from datetime import datetime
 from client.llm_client import LLMClient
 from config.config import Config
 from config.loader import get_data_dir
+from context.compaction import ChatCompactor
 from context.manager import ContextManager
 from tools.mcp.mcp_manager import MCPManager
 from tools.registry import create_default_regsitry
@@ -20,6 +21,7 @@ class Session:
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
         self.mcp_manager = MCPManager(self.config)
+        self.chatcompactor = ChatCompactor(self.client)
 
         self._turn_count = 0
 
